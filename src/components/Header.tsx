@@ -3,7 +3,7 @@ import { Todo } from '../types/Todo';
 
 interface HeaderProps {
   todos: Todo[];
-  inputRef: React.LegacyRef<HTMLInputElement>;
+  titleInputRef: React.LegacyRef<HTMLInputElement>;
   tempTodo: Todo | null;
   input: string;
   activeTodos: number[];
@@ -14,7 +14,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   todos,
-  inputRef,
+  titleInputRef,
   tempTodo,
   input,
   activeTodos,
@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
       <form>
         <input
           data-cy="NewTodoField"
-          ref={inputRef}
+          ref={titleInputRef}
           type="text"
           disabled={tempTodo !== null}
           value={input}

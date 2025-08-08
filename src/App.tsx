@@ -22,6 +22,8 @@ export const App: React.FC = () => {
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [loadingTodoIds, setLoadingTodoIds] = useState<number[]>([]);
   const [editingTodoId, setEditingTodoId] = useState<number | null>(null);
+  const [editLoader, setEditLoader] = useState<number | null>(null);
+  const [prevTitle, setPrevTitle] = useState('');
   const [newTitle, setNewTitle] = useState('');
 
   const activeTodos = todos
@@ -31,7 +33,8 @@ export const App: React.FC = () => {
     .filter(todo => todo.completed)
     .map(todo => todo.id);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const onError = (errorString: string) => {
     setErrorMessage(errorString);
@@ -51,35 +54,6 @@ export const App: React.FC = () => {
         return todo;
     }
   });
-
-  const handleEditTitle = (todoId: number, title: string) => {
-    setEditingTodoId(todoId);
-    setNewTitle(title);
-  };
-
-  const handleSaveEditTitle = async (todosId: number) => {
-    try {
-      const cleanTitle = newTitle.trim();
-
-      setLoadingTodoIds([todosId]);
-      const updateTitle = await updateTodo(todosId, { title: cleanTitle });
-
-      if (updateTitle) {
-        setTodos(prevTodos =>
-          prevTodos.map(todo =>
-            todo.id === updateTitle.id
-              ? { ...todo, title: updateTitle.title }
-              : todo,
-          ),
-        );
-        setLoadingTodoIds([]);
-        setEditingTodoId(null);
-        setNewTitle('');
-      }
-    } catch {
-      onError('Unable to edit a todo');
-    }
-  };
 
   const handleUpdateStatus = async (todosId: number) => {
     try {
@@ -204,6 +178,62 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleEditTitle = (todoId: number, title: string) => {
+    setEditingTodoId(todoId);
+    setPrevTitle(title);
+    setNewTitle(title);
+  };
+
+  const handleSaveEditTitle = async (todosId: number) => {
+    try {
+      const cleanTitle = newTitle.trim();
+
+      if (cleanTitle === prevTitle) {
+        setEditingTodoId(null);
+        setNewTitle('');
+
+        return;
+      }
+
+      if (!cleanTitle) {
+        try {
+          setEditLoader(editingTodoId);
+          const deleteAproved = await deleteTodo(todosId);
+
+          if (deleteAproved) {
+            setTodos(filteredTodos.filter(todo => todo.id !== todosId));
+            setEditingTodoId(null);
+            setNewTitle('');
+          }
+        } catch (error) {
+          onError('Unable to delete a todo');
+        }
+
+        return;
+      }
+
+      setEditLoader(editingTodoId);
+      const updateTitle = await updateTodo(todosId, { title: cleanTitle });
+
+      if (updateTitle) {
+        setTodos(prevTodos =>
+          prevTodos.map(todo =>
+            todo.id === updateTitle.id
+              ? { ...todo, title: updateTitle.title }
+              : todo,
+          ),
+        );
+      }
+
+      setEditLoader(null);
+      setEditingTodoId(null);
+      setNewTitle('');
+    } catch (error) {
+      onError('Unable to update a todo');
+      setEditLoader(null);
+    }
+  };
+
   const handleTodoSubmit = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     try {
       if (e.key === 'Enter') {
@@ -226,8 +256,8 @@ export const App: React.FC = () => {
             setTodos([...todos, newTodo]);
             setInput('');
             setErrorMessage('');
-            if (inputRef.current) {
-              inputRef.current.focus();
+            if (titleInputRef.current) {
+              titleInputRef.current.focus();
             }
           }
         }
@@ -254,10 +284,14 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (tempTodo === null || loadingTodoIds) {
-      inputRef.current?.focus();
+    if ((tempTodo === null || loadingTodoIds) && titleInputRef.current) {
+      titleInputRef.current?.focus();
     }
-  }, [tempTodo, loadingTodoIds]);
+
+    if (editingTodoId && editInputRef.current) {
+      editInputRef.current?.focus();
+    }
+  }, [tempTodo, loadingTodoIds, editingTodoId]);
 
   if (!USER_ID) {
     return <UserWarning />;
@@ -270,7 +304,7 @@ export const App: React.FC = () => {
       <div className="todoapp__content">
         <Header
           todos={todos}
-          inputRef={inputRef}
+          titleInputRef={titleInputRef}
           tempTodo={tempTodo}
           input={input}
           activeTodos={activeTodos}
@@ -283,7 +317,9 @@ export const App: React.FC = () => {
           loadingTodoIds={loadingTodoIds}
           tempTodo={tempTodo}
           editingTodoId={editingTodoId}
+          editLoader={editLoader}
           newTitle={newTitle}
+          editInputRef={editInputRef}
           handleDelete={handleDelete}
           handleUpdateStatus={handleUpdateStatus}
           handleEditTitle={handleEditTitle}

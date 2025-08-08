@@ -5,7 +5,9 @@ interface TodoItemProps {
   todo: Todo;
   loadingTodoIds: number[] | [];
   editingTodoId: number | null;
+  editLoader: number | null;
   newTitle: string;
+  editInputRef: React.LegacyRef<HTMLInputElement>;
   handleDelete: (id: number) => void;
   handleUpdateStatus: (id: number) => void;
   handleEditTitle: (id: number, title: string) => void;
@@ -18,7 +20,9 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   todo,
   loadingTodoIds,
   editingTodoId,
+  editLoader,
   newTitle,
+  editInputRef,
   handleDelete,
   handleUpdateStatus,
   handleEditTitle,
@@ -62,6 +66,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
               type="text"
               className="todo__title-field"
               placeholder="Empty todo will be deleted"
+              ref={editInputRef}
               value={newTitle}
               onChange={e => setNewTitle(e.target.value)}
               onBlur={() => handleSaveEditTitle(todo.id)}
@@ -71,8 +76,14 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   setNewTitle('');
                 }
               }}
-              autoFocus
             />
+            <div
+              data-cy="TodoLoader"
+              className={`modal overlay ${editLoader === todo.id ? 'is-active' : ''}`}
+            >
+              <div className="modal-background has-background-white-ter" />
+              <div className="loader" />
+            </div>
           </form>
         ) : (
           <>
@@ -96,16 +107,15 @@ export const TodoItem: React.FC<TodoItemProps> = ({
             >
               ×
             </button>
+            <div
+              data-cy="TodoLoader"
+              className={`modal overlay ${loadingTodoIds?.some(t => t === todo.id) ? 'is-active' : ''}`}
+            >
+              <div className="modal-background has-background-white-ter" />
+              <div className="loader" />
+            </div>
           </>
         )}
-
-        <div
-          data-cy="TodoLoader"
-          className={`modal overlay ${loadingTodoIds?.some(t => t === todo.id) ? 'is-active' : ''}`}
-        >
-          <div className="modal-background has-background-white-ter" />
-          <div className="loader" />
-        </div>
       </div>
 
       {/* This todo is being edited */}

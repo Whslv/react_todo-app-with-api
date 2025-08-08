@@ -7,7 +7,9 @@ interface TodoListProps {
   loadingTodoIds: number[] | [];
   tempTodo: Todo | null;
   editingTodoId: number | null;
+  editLoader: number | null;
   newTitle: string;
+  editInputRef: React.LegacyRef<HTMLInputElement>;
   handleDelete: (id: number) => void;
   handleUpdateStatus: (id: number) => void;
   handleEditTitle: (id: number, title: string) => void;
@@ -21,7 +23,9 @@ export const TodoList: React.FC<TodoListProps> = ({
   loadingTodoIds,
   tempTodo,
   editingTodoId,
+  editLoader,
   newTitle,
+  editInputRef,
   handleDelete,
   handleUpdateStatus,
   handleEditTitle,
@@ -38,7 +42,9 @@ export const TodoList: React.FC<TodoListProps> = ({
             todo={todo}
             loadingTodoIds={loadingTodoIds}
             editingTodoId={editingTodoId}
+            editLoader={editLoader}
             newTitle={newTitle}
+            editInputRef={editInputRef}
             handleDelete={handleDelete}
             handleUpdateStatus={handleUpdateStatus}
             handleEditTitle={handleEditTitle}
