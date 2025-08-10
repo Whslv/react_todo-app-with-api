@@ -1,11 +1,12 @@
 import React from 'react';
-type FilterType = 'all' | 'active' | 'completed';
+import { Filter } from '../types/Filter';
+import classNames from 'classnames';
 
 interface FooterProps {
   activeTodos: number[];
   completedTodos: number[];
-  filter: FilterType;
-  setFilter: (filter: FilterType) => void;
+  filter: Filter;
+  setFilter: (filter: Filter) => void;
   handlClearAll: () => void;
 }
 
@@ -26,11 +27,13 @@ export const Footer: React.FC<FooterProps> = ({
         <nav className="filter" data-cy="Filter">
           <a
             href="#/"
-            className={`filter__link ${filter === 'all' && 'selected'}`}
+            className={classNames('filter__link', {
+              selected: filter === Filter.ALL,
+            })}
             data-cy="FilterLinkAll"
             onClick={e => {
               e.preventDefault();
-              setFilter('all');
+              setFilter(Filter.ALL);
             }}
           >
             All
@@ -38,11 +41,13 @@ export const Footer: React.FC<FooterProps> = ({
 
           <a
             href="#/active"
-            className={`filter__link ${filter === 'active' && 'selected'}`}
+            className={classNames('filter__link', {
+              selected: filter === Filter.ACTIVE,
+            })}
             data-cy="FilterLinkActive"
             onClick={e => {
               e.preventDefault();
-              setFilter('active');
+              setFilter(Filter.ACTIVE);
             }}
           >
             Active
@@ -50,11 +55,13 @@ export const Footer: React.FC<FooterProps> = ({
 
           <a
             href="#/completed"
-            className={`filter__link ${filter === 'completed' && 'selected'}`}
+            className={classNames('filter__link', {
+              selected: filter === Filter.COMPLETED,
+            })}
             data-cy="FilterLinkCompleted"
             onClick={e => {
               e.preventDefault();
-              setFilter('completed');
+              setFilter(Filter.COMPLETED);
             }}
           >
             Completed

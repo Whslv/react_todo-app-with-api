@@ -13,12 +13,15 @@ import { Todo } from './types/Todo';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { TodoList } from './components/TodoList';
+import { ErrorMessages } from './types/ErrorMessages';
+import { Filter } from './types/Filter';
+import classNames from 'classnames';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [input, setInput] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [filter, setFilter] = useState<Filter>(Filter.ALL);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [loadingTodoIds, setLoadingTodoIds] = useState<number[]>([]);
   const [editingTodoId, setEditingTodoId] = useState<number | null>(null);
@@ -36,7 +39,7 @@ export const App: React.FC = () => {
   const titleInputRef = useRef<HTMLInputElement>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
 
-  const onError = (errorString: string) => {
+  const onError = (errorString: ErrorMessages) => {
     setErrorMessage(errorString);
     setTimeout(() => {
       setErrorMessage('');
@@ -45,11 +48,11 @@ export const App: React.FC = () => {
 
   const filteredTodos = todos.filter(todo => {
     switch (filter) {
-      case 'active':
+      case Filter.ACTIVE:
         return !todo.completed;
-      case 'completed':
+      case Filter.COMPLETED:
         return todo.completed;
-      case 'all':
+      case Filter.ALL:
       default:
         return todo;
     }
@@ -77,7 +80,7 @@ export const App: React.FC = () => {
         }
       }
     } catch (error) {
-      onError('Unable to update a todo');
+      onError(ErrorMessages.UPDATE_ERROR);
       setLoadingTodoIds([]);
     }
   };
@@ -107,7 +110,7 @@ export const App: React.FC = () => {
         );
 
         if (hasErorr) {
-          onError('Unable to update a todo');
+          onError(ErrorMessages.UPDATE_ERROR);
         }
       } else {
         setLoadingTodoIds(completedTodos);
@@ -132,11 +135,11 @@ export const App: React.FC = () => {
         );
 
         if (hasErorr) {
-          onError('Unable to update a todo');
+          onError(ErrorMessages.UPDATE_ERROR);
         }
       }
     } catch {
-      onError('Unable to update a todo');
+      onError(ErrorMessages.UPDATE_ERROR);
     }
   };
 
@@ -156,10 +159,10 @@ export const App: React.FC = () => {
       setLoadingTodoIds([]);
 
       if (hasErorr) {
-        onError('Unable to delete a todo');
+        onError(ErrorMessages.DELETE_ERROR);
       }
     } catch {
-      onError('Unable to delete a todo');
+      onError(ErrorMessages.DELETE_ERROR);
     }
   };
 
@@ -173,7 +176,7 @@ export const App: React.FC = () => {
         setLoadingTodoIds([]);
       }
     } catch (error) {
-      onError('Unable to delete a todo');
+      onError(ErrorMessages.DELETE_ERROR);
       setLoadingTodoIds([]);
     }
   };
@@ -206,7 +209,7 @@ export const App: React.FC = () => {
             setNewTitle('');
           }
         } catch (error) {
-          onError('Unable to delete a todo');
+          onError(ErrorMessages.DELETE_ERROR);
         }
 
         return;
@@ -229,7 +232,7 @@ export const App: React.FC = () => {
       setEditingTodoId(null);
       setNewTitle('');
     } catch (error) {
-      onError('Unable to update a todo');
+      onError(ErrorMessages.UPDATE_ERROR);
       setEditLoader(null);
     }
   };
@@ -263,12 +266,12 @@ export const App: React.FC = () => {
         }
 
         if (!cleanInput) {
-          onError('Title should not be empty');
+          onError(ErrorMessages.TITLE_ERROR);
           setTempTodo(null);
         }
       }
     } catch (error) {
-      onError('Unable to add a todo');
+      onError(ErrorMessages.ADDING_ERROR);
       setTempTodo(null);
     }
   };
@@ -279,7 +282,7 @@ export const App: React.FC = () => {
         setTodos(res);
       })
       .catch(() => {
-        onError('Unable to load todos');
+        onError(ErrorMessages.LOADING_ERROR);
       });
   }, []);
 
@@ -340,7 +343,10 @@ export const App: React.FC = () => {
 
       <div
         data-cy="ErrorNotification"
-        className={`notification is-danger is-light has-text-weight-normal ${errorMessage ? '' : 'hidden'}`}
+        className={classNames(
+          'notification is-danger is-light has-text-weight-normal',
+          { hidden: !errorMessage },
+        )}
       >
         <button
           data-cy="HideErrorButton"
@@ -350,9 +356,7 @@ export const App: React.FC = () => {
             setErrorMessage('');
           }}
         />
-        {/* show only one message at a time */}
         {errorMessage}
-        {/* Unable to update a todo */}
       </div>
     </div>
   );

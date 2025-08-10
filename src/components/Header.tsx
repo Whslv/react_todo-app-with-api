@@ -1,5 +1,6 @@
 import React from 'react';
 import { Todo } from '../types/Todo';
+import classNames from 'classnames';
 
 interface HeaderProps {
   todos: Todo[];
@@ -27,7 +28,9 @@ export const Header: React.FC<HeaderProps> = ({
       {todos.length > 0 && (
         <button
           type="button"
-          className={`todoapp__toggle-all ${activeTodos.length === 0 && 'active'}`}
+          className={classNames('todoapp__toggle-all', {
+            active: activeTodos.length === 0,
+          })}
           data-cy="ToggleAllButton"
           onClick={() => {
             handlUpdateAll();
@@ -40,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
           data-cy="NewTodoField"
           ref={titleInputRef}
           type="text"
-          disabled={tempTodo !== null}
+          disabled={!!tempTodo}
           value={input}
           className="todoapp__new-todo"
           placeholder="What needs to be done?"
